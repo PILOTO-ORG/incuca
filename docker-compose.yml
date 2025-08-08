@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Frontend Vue.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    networks:
+      - incuca-network
+
+  # Backend Node.js
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:secret@database:3306/incuca
+      - JWT_SECRET=your-super-secret-jwt-key-here-should-be-very-long-and-random
+      - JWT_EXPIRES_IN=7d
+      - GEEK_JOKES_API_URL=https://geek-jokes.sameerkumar.website/api
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - database
+    networks:
+      - incuca-network
+
+  # MySQL Database
+  database:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=incuca
+      - MYSQL_USER=incuca
+      - MYSQL_PASSWORD=secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - incuca-network
+
+  # PHPMyAdmin (opcional para desenvolvimento)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=database
+      - PMA_USER=root
+      - PMA_PASSWORD=secret
+    depends_on:
+      - database
+    networks:
+      - incuca-network
+
+volumes:
+  mysql_data:
+
+networks:
+  incuca-network:
+    driver: bridge
