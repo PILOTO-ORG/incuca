@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { getRandomJoke, getMultipleJokes, getJokeStats, healthCheck } from '@/controllers/jokeController';
+import { 
+  getRandomJoke, 
+  getJokeStats, 
+  healthCheck,
+  getFavoriteJokes,
+  favoriteJoke,
+  unfavoriteJoke,
+  checkJokeFavorite,
+  shareJoke
+} from '@/controllers/jokeController';
 import { authenticateToken } from '@/middleware/auth';
 
 const router = Router();
@@ -15,12 +24,43 @@ router.use(authenticateToken);
 router.get('/random', getRandomJoke);
 
 /**
- * @route   GET /api/jokes/multiple
- * @desc    Buscar múltiplas piadas
- * @query   count - Número de piadas (1-10, padrão: 3)
+ * @route   GET /api/jokes/favorites
+ * @desc    Buscar piadas favoritas do usuário
  * @access  Private
  */
-router.get('/multiple', getMultipleJokes);
+router.get('/favorites', getFavoriteJokes);
+
+/**
+ * @route   POST /api/jokes/favorite
+ * @desc    Favoritar uma piada
+ * @body    { joke: string, jokeId?: string }
+ * @access  Private
+ */
+router.post('/favorite', favoriteJoke);
+
+/**
+ * @route   DELETE /api/jokes/favorite
+ * @desc    Desfavoritar uma piada
+ * @body    { joke: string }
+ * @access  Private
+ */
+router.delete('/favorite', unfavoriteJoke);
+
+/**
+ * @route   POST /api/jokes/check-favorite
+ * @desc    Verificar se uma piada está nos favoritos
+ * @body    { joke: string }
+ * @access  Private
+ */
+router.post('/check-favorite', checkJokeFavorite);
+
+/**
+ * @route   POST /api/jokes/share
+ * @desc    Compartilhar piada via WhatsApp
+ * @body    { joke: string }
+ * @access  Private
+ */
+router.post('/share', shareJoke);
 
 /**
  * @route   GET /api/jokes/stats

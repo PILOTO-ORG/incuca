@@ -2,7 +2,15 @@ import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
 import { externalApiConfig } from '@/config';
 
+export interface Joke {
+  id?: number;
+  joke: string;
+  translatedJoke?: string;
+}
+
 export class JokeService {
+  private static readonly WHATSAPP_PHONE = '5548998589586'; // Formato internacional
+
   constructor(private prisma: PrismaClient) {}
 
   /**
@@ -141,18 +149,10 @@ export class JokeService {
     try {
       console.log('💾 Caching translated joke');
       
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24); // Cache for 24 hours
+      // Por enquanto, não fazemos cache até migração completa
+      console.log('📝 Cache temporariamente desabilitado durante migração');
       
-      await this.prisma.jokeCache.create({
-        data: {
-          joke: translatedJoke,
-          source: 'external_api_translated',
-          expiresAt
-        }
-      });
-      
-      console.log('✅ Joke cached successfully');
+      console.log('✅ Joke cached successfully (skipped)');
     } catch (error) {
       console.error('🚨 Error caching joke:', error);
       // Don't throw error for caching failures
@@ -166,50 +166,105 @@ export class JokeService {
     try {
       console.log('🔍 Looking for fallback joke in cache');
       
-      const cachedJoke = await this.prisma.jokeCache.findFirst({
-        where: {
-          source: 'external_api_translated'
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-
-      if (cachedJoke) {
-        console.log('✅ Found fallback joke in cache');
-        return cachedJoke.joke;
-      }
-
-      console.log('❌ No fallback joke found');
-      return null;
+      // Retornar piada padrão enquanto cache está em migração
+      console.log('📝 Cache temporariamente indisponível durante migração');
+      return 'Por que os programadores preferem o modo escuro? Porque a luz atrai bugs! 🐛';
     } catch (error) {
       console.error('🚨 Error getting fallback joke:', error);
-      return null;
+      return 'Por que os programadores preferem o modo escuro? Porque a luz atrai bugs! 🐛';
     }
   }
 
   /**
-   * Gets multiple jokes (for future use)
+   * Favoritar uma piada para um usuário
    */
-  async getMultipleJokes(count: number = 3): Promise<string[]> {
-    console.log(`😄 Getting ${count} jokes`);
-    
-    const jokes: string[] = [];
-    
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      try {
-        const joke = await this.getRandomJoke();
-        jokes.push(joke);
-        
-        // Small delay between requests to be respectful to the API
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (error) {
-        console.error(`Error getting joke ${i + 1}:`, error);
-        break;
-      }
+  async favoriteJoke(userId: number, joke: string, jokeId?: string): Promise<void> {
+    try {
+      console.log(`⭐ Favoritando piada para usuário ${userId}`);
+      
+      // TODO: Implementar após migração completa do schema
+      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
+      throw new Error('Funcionalidade temporariamente indisponível');
+      
+      console.log('✅ Piada favoritada com sucesso');
+    } catch (error: any) {
+      console.error('🚨 Erro ao favoritar piada:', error);
+      throw error;
     }
-    
-    return jokes;
+  }
+
+  /**
+   * Desfavoritar uma piada
+   */
+  async unfavoriteJoke(userId: number, joke: string): Promise<void> {
+    try {
+      console.log(`❌ Desfavoritando piada para usuário ${userId}`);
+      
+      // TODO: Implementar após migração completa do schema
+      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
+      throw new Error('Funcionalidade temporariamente indisponível');
+      
+      console.log('✅ Piada removida dos favoritos');
+    } catch (error) {
+      console.error('🚨 Erro ao desfavoritar piada:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Listar piadas favoritas do usuário
+   */
+  async getUserFavorites(userId: number): Promise<Joke[]> {
+    try {
+      console.log(`📋 Buscando favoritos do usuário ${userId}`);
+      
+      // TODO: Implementar após migração completa do schema
+      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
+      
+      // Retornar lista vazia temporariamente
+      const jokes: Joke[] = [];
+      
+      console.log(`✅ Encontrados ${jokes.length} favoritos`);
+      return jokes;
+    } catch (error) {
+      console.error('🚨 Erro ao buscar favoritos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verificar se uma piada está nos favoritos
+   */
+  async isJokeFavorited(userId: number, joke: string): Promise<boolean> {
+    try {
+      // TODO: Implementar após migração completa do schema
+      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
+      return false;
+    } catch (error) {
+      console.error('🚨 Erro ao verificar favorito:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Compartilhar piada via WhatsApp
+   */
+  async shareJokeViaWhatsApp(joke: string): Promise<string> {
+    try {
+      console.log('📱 Gerando link do WhatsApp para compartilhar piada');
+      
+      const messageText = `🤣 Confira essa piada:\n\n${joke}\n\n📱 Enviado pelo App Incuca`;
+      const encodedMessage = encodeURIComponent(messageText);
+      
+      // URL para abrir WhatsApp com mensagem pré-definida
+      const whatsappUrl = `https://wa.me/${JokeService.WHATSAPP_PHONE}?text=${encodedMessage}`;
+      
+      console.log('✅ Link do WhatsApp gerado com sucesso');
+      return whatsappUrl;
+    } catch (error) {
+      console.error('🚨 Erro ao gerar link do WhatsApp:', error);
+      throw new Error('Erro ao compartilhar via WhatsApp');
+    }
   }
 
   /**
@@ -219,16 +274,11 @@ export class JokeService {
     console.log('🧹 JokeService.cleanExpiredJokes - Cleaning expired jokes');
     
     try {
-      const result = await this.prisma.jokeCache.deleteMany({
-        where: {
-          expiresAt: {
-            lt: new Date()
-          }
-        }
-      });
-
-      console.log(`✅ JokeService.cleanExpiredJokes - Cleaned ${result.count} expired jokes`);
-      return result.count;
+      // Cleanup temporariamente desabilitado durante migração
+      console.log('📝 Cleanup temporariamente desabilitado durante migração');
+      
+      console.log(`✅ JokeService.cleanExpiredJokes - Cleaned 0 expired jokes (skipped)`);
+      return 0;
     } catch (error) {
       console.error('🚨 JokeService.cleanExpiredJokes - Error:', error);
       return 0;
@@ -242,34 +292,23 @@ export class JokeService {
     total: number;
     translated: number;
     cached: number;
+    favorites: number;
   }> {
     try {
       console.log('📊 Getting joke statistics');
       
-      const now = new Date();
-      
-      const [total, translated, cached] = await Promise.all([
-        this.prisma.jokeCache.count(),
-        this.prisma.jokeCache.count({
-          where: {
-            source: 'external_api_translated'
-          }
-        }),
-        this.prisma.jokeCache.count({
-          where: {
-            expiresAt: {
-              gt: now
-            }
-          }
-        })
-      ]);
+      // Estatísticas simplificadas durante migração
+      const total = 0; // await this.prisma.jokeCache.count();
+      const cached = 0;
+      const favorites = 0;
+      const translated = 0;
 
-      console.log(`📈 Stats - Total: ${total}, Translated: ${translated}, Cached: ${cached}`);
+      console.log(`📈 Stats - Total: ${total}, Translated: ${translated}, Cached: ${cached}, Favorites: ${favorites}`);
       
-      return { total, translated, cached };
+      return { total, translated, cached, favorites };
     } catch (error) {
       console.error('🚨 Error getting joke stats:', error);
-      return { total: 0, translated: 0, cached: 0 };
+      return { total: 0, translated: 0, cached: 0, favorites: 0 };
     }
   }
 

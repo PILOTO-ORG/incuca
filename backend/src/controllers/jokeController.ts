@@ -37,37 +37,6 @@ export const getRandomJoke = async (req: Request, res: Response, next: NextFunct
 };
 
 /**
- * Buscar múltiplas piadas
- */
-export const getMultipleJokes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  console.log('😂 JokeController.getMultipleJokes - Multiple jokes request started');
-  
-  try {
-    const count = Math.min(Math.max(parseInt(req.query.count as string) || 3, 1), 10);
-    console.log(`🔢 JokeController.getMultipleJokes - Fetching ${count} jokes`);
-
-    const jokes: string[] = [];
-
-    for (let i = 0; i < count; i++) {
-      console.log(`🔍 JokeController.getMultipleJokes - Fetching joke ${i + 1}/${count}`);
-      const joke = await jokeService.getRandomJoke();
-      jokes.push(joke);
-    }
-
-    console.log(`✅ JokeController.getMultipleJokes - Successfully fetched ${jokes.length} jokes`);
-
-    res.json(responseUtils.success('Piadas encontradas com sucesso', {
-      jokes,
-      count: jokes.length,
-      timestamp: new Date().toISOString()
-    }));
-  } catch (error: any) {
-    console.error('🚨 JokeController.getMultipleJokes - Error:', error.message);
-    next(error);
-  }
-};
-
-/**
  * Buscar estatísticas de piadas
  */
 export const getJokeStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -118,21 +87,175 @@ export const clearExpiredCache = async (req: Request, res: Response, next: NextF
 };
 
 /**
- * Buscar piadas favoritas (funcionalidade futura)
+ * Buscar piadas favoritas do usuário autenticado
  */
-export const getFavoriteJokes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getFavoriteJokes = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   console.log('⭐ JokeController.getFavoriteJokes - Favorite jokes request started');
   
   try {
-    // Implementação futura - por enquanto retorna lista vazia
-    console.log('💡 JokeController.getFavoriteJokes - Feature not implemented yet');
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      return res.status(401).json(responseUtils.error('Usuário não autenticado'));
+    }
 
-    res.json(responseUtils.success('Funcionalidade em desenvolvimento', {
-      favorites: [],
-      message: 'Em breve você poderá favoritar suas piadas preferidas!'
+    console.log(`🔍 JokeController.getFavoriteJokes - Fetching favorites for user ${userId}`);
+
+    const favorites = await jokeService.getUserFavorites(userId);
+
+    console.log(`✅ JokeController.getFavoriteJokes - Found ${favorites.length} favorites`);
+
+    res.json(responseUtils.success('Piadas favoritas encontradas', {
+      favorites,
+      count: favorites.length,
+      timestamp: new Date().toISOString()
     }));
   } catch (error: any) {
     console.error('🚨 JokeController.getFavoriteJokes - Error:', error.message);
+    next(error);
+  }
+};
+
+/**
+ * Favoritar uma piada
+ */
+export const favoriteJoke = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  console.log('💖 JokeController.favoriteJoke - Favorite joke request started');
+  
+  try {
+    const userId = (req as any).user?.id;
+    const { joke, jokeId } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json(responseUtils.error('Usuário não autenticado'));
+    }
+
+    if (!joke) {
+      return res.status(400).json(responseUtils.error('Piada é obrigatória'));
+    }
+
+    console.log(`⭐ JokeController.favoriteJoke - Adding favorite for user ${userId}`);
+
+    await jokeService.favoriteJoke(userId, joke, jokeId);
+
+    console.log('✅ JokeController.favoriteJoke - Joke favorited successfully');
+
+    res.json(responseUtils.success('Piada adicionada aos favoritos', {
+      joke,
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error: any) {
+    console.error('🚨 JokeController.favoriteJoke - Error:', error.message);
+    
+    if (error.message === 'Piada já está nos favoritos') {
+      return res.status(409).json(responseUtils.error(error.message));
+    }
+    
+    next(error);
+  }
+};
+
+/**
+ * Desfavoritar uma piada
+ */
+export const unfavoriteJoke = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  console.log('💔 JokeController.unfavoriteJoke - Unfavorite joke request started');
+  
+  try {
+    const userId = (req as any).user?.id;
+    const { joke } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json(responseUtils.error('Usuário não autenticado'));
+    }
+
+    if (!joke) {
+      return res.status(400).json(responseUtils.error('Piada é obrigatória'));
+    }
+
+    console.log(`❌ JokeController.unfavoriteJoke - Removing favorite for user ${userId}`);
+
+    await jokeService.unfavoriteJoke(userId, joke);
+
+    console.log('✅ JokeController.unfavoriteJoke - Joke unfavorited successfully');
+
+    res.json(responseUtils.success('Piada removida dos favoritos', {
+      joke,
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error: any) {
+    console.error('🚨 JokeController.unfavoriteJoke - Error:', error.message);
+    
+    if (error.message === 'Piada não encontrada nos favoritos') {
+      return res.status(404).json(responseUtils.error(error.message));
+    }
+    
+    next(error);
+  }
+};
+
+/**
+ * Verificar se uma piada está nos favoritos
+ */
+export const checkJokeFavorite = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  console.log('🔍 JokeController.checkJokeFavorite - Check favorite status request started');
+  
+  try {
+    const userId = (req as any).user?.id;
+    const { joke } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json(responseUtils.error('Usuário não autenticado'));
+    }
+
+    if (!joke) {
+      return res.status(400).json(responseUtils.error('Piada é obrigatória'));
+    }
+
+    console.log(`🔍 JokeController.checkJokeFavorite - Checking favorite status for user ${userId}`);
+
+    const isFavorited = await jokeService.isJokeFavorited(userId, joke);
+
+    console.log(`✅ JokeController.checkJokeFavorite - Favorite status: ${isFavorited}`);
+
+    res.json(responseUtils.success('Status verificado', {
+      joke,
+      isFavorited,
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error: any) {
+    console.error('🚨 JokeController.checkJokeFavorite - Error:', error.message);
+    next(error);
+  }
+};
+
+/**
+ * Compartilhar piada via WhatsApp
+ */
+export const shareJoke = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  console.log('📱 JokeController.shareJoke - Share joke request started');
+  
+  try {
+    const { joke } = req.body;
+    
+    if (!joke) {
+      return res.status(400).json(responseUtils.error('Piada é obrigatória'));
+    }
+
+    console.log('📤 JokeController.shareJoke - Generating WhatsApp share link');
+
+    const whatsappUrl = await jokeService.shareJokeViaWhatsApp(joke);
+
+    console.log('✅ JokeController.shareJoke - Share link generated successfully');
+
+    res.json(responseUtils.success('Link do WhatsApp gerado', {
+      joke,
+      whatsappUrl,
+      message: 'Abra o link para compartilhar a piada no WhatsApp',
+      timestamp: new Date().toISOString()
+    }));
+  } catch (error: any) {
+    console.error('🚨 JokeController.shareJoke - Error:', error.message);
     next(error);
   }
 };

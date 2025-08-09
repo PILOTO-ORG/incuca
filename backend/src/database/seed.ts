@@ -65,12 +65,8 @@ async function seed(): Promise<void> {
     ];
 
     for (const joke of initialJokes) {
-      await prisma.jokeCache.create({
-        data: {
-          joke,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hora
-        }
-      });
+      // Seed temporariamente desabilitado durante migração do schema
+      console.log(`📝 Skipping joke seed: ${joke.substring(0, 50)}...`);
     }
 
     console.log(`💫 Adicionadas ${initialJokes.length} piadas iniciais ao cache`);

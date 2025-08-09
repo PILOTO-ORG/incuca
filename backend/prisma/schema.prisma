@@ -18,16 +18,33 @@ model User {
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relacionamento com piadas favoritas
+  favoriteJokes FavoriteJoke[]
 
   @@map("users")
 }
 
 model JokeCache {
-  id        Int      @id @default(autoincrement())
-  joke      String   @db.Text
-  source    String   @default("external_api")
-  createdAt DateTime @default(now()) @map("created_at")
-  expiresAt DateTime @map("expires_at")
-
+  id            Int      @id @default(autoincrement())
+  joke          String
+  translatedJoke String? @map("translated_joke")
+  language      String   @default("pt")
+  createdAt     DateTime @default(now()) @map("created_at")
+  
   @@map("joke_cache")
+}
+
+model FavoriteJoke {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  joke      String
+  jokeId    String?  @map("joke_id") // ID da piada externa (se disponível)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relacionamento com usuário
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, joke]) // Evita duplicatas da mesma piada para o mesmo usuário
+  @@map("favorite_jokes")
 }
