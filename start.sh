@@ -91,34 +91,20 @@ if [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
-# Função para executar docker compose (compatibilidade v1/v2)
-docker_compose() {
-    if command_exists docker-compose; then
-        docker-compose "$@"
-    else
-        docker compose "$@"
-    fi
-}
 
-# Limpar containers antigos se existirem
 echo -e "\n${BLUE}🧹 Limpando ambiente anterior...${NC}"
-docker_compose down -v 2>/dev/null || true
+docker-compose down -v 2>/dev/null || true
 
 # Construir e iniciar containers
 echo -e "\n${BLUE}🏗️ Construindo containers...${NC}"
-docker_compose build --no-cache
-
-echo -e "\n${BLUE}${ROCKET} Iniciando containers...${NC}"
-docker_compose up -d
+docker-compose build
+echo -e "\n${BLUE}🚀 Iniciando containers...${NC}"
+docker-compose up -d
 
 # Aguardar serviços
 echo -e "\n${BLUE}⏳ Aguardando serviços ficarem prontos...${NC}"
 
-# Aguardar MySQL
-wait_for_service "http://localhost:3306" "MySQL"
-
-# Aguardar PHPMyAdmin
-wait_for_service "http://localhost:8080" "PHPMyAdmin"
+    # Aguardar Backend
 
 # Aguardar Backend
 wait_for_service "http://localhost:8000/health" "Backend API"
@@ -128,11 +114,11 @@ wait_for_service "http://localhost:3000" "Frontend"
 
 # Executar migrações do banco
 echo -e "\n${BLUE}${DATABASE} Executando migrações do banco...${NC}"
-docker_compose exec backend npx prisma migrate deploy
+docker-compose exec backend npx prisma migrate deploy
 
 # Executar seed se necessário
 echo -e "\n${BLUE}🌱 Executando seed do banco...${NC}"
-docker_compose exec backend npm run db:seed
+docker-compose exec backend npm run db:seed
 
 # Verificar se tudo está funcionando
 echo -e "\n${BLUE}🔍 Verificando saúde dos serviços...${NC}"
@@ -153,14 +139,12 @@ else
     echo -e "${RED}${ERROR} Frontend com problemas (Status: ${FRONTEND_STATUS})${NC}"
 fi
 
-# Informações finais
-echo -e "\n${GREEN}${ROCKET} PROJETO INICIADO COM SUCESSO! ${ROCKET}${NC}"
-echo -e "${CYAN}================================================${NC}"
-echo -e "\n${YELLOW}🌐 URLs dos Serviços:${NC}"
-echo -e "   Frontend:    http://localhost:3000"
-echo -e "   Backend API: http://localhost:8000/api"
-echo -e "   PHPMyAdmin:  http://localhost:8080"
-echo -e "   MySQL:       localhost:3306"
+    # Informações finais
+    echo -e "\n${GREEN}${ROCKET} PROJETO INICIADO COM SUCESSO! ${ROCKET}${NC}"
+    echo -e "${CYAN}================================================${NC}"
+    echo -e "\n${YELLOW}🌐 URLs dos Serviços:${NC}"
+    echo -e "   Frontend:    http://localhost:3000"
+    echo -e "   Backend API: http://localhost:8000/api"
 
 echo -e "\n${YELLOW}🔑 Credenciais de Teste:${NC}"
 echo -e "   Email:    cliente@incuca.com.br"
@@ -168,9 +152,9 @@ echo -e "   Senha:    seumamesapossuirtrespernaschamadasqualidadeprecobaixoevelo
 
 echo -e "\n${YELLOW}🗄️ Banco de Dados:${NC}"
 echo -e "   Host:     localhost"
-echo -e "   Porta:    3306"
+echo -e "   Porta:    5432"
 echo -e "   Database: incuca"
-echo -e "   User:     root"
+echo -e "   User:     incuca"
 echo -e "   Password: secret"
 
 echo -e "\n${YELLOW}📚 Recursos Úteis:${NC}"
@@ -180,10 +164,10 @@ echo -e "   Logs Backend:     docker-compose logs backend"
 echo -e "   Logs Frontend:    docker-compose logs frontend"
 
 echo -e "\n${YELLOW}🛠️ Comandos Úteis:${NC}"
-echo -e "   Parar projeto:    docker compose down"
-echo -e "   Ver logs:         docker compose logs -f"
-echo -e "   Restart serviço:  docker compose restart [serviço]"
-echo -e "   Limpar volumes:   docker compose down -v"
+echo -e "   Parar projeto:    docker-compose down"
+echo -e "   Ver logs:         docker-compose logs -f"
+echo -e "   Restart serviço:  docker-compose restart [serviço]"
+echo -e "   Limpar volumes:   docker-compose down -v"
 
 echo -e "\n${GREEN}✨ O projeto está pronto para uso! Acesse http://localhost:3000${NC}"
 echo -e "${CYAN}================================================${NC}"
@@ -201,4 +185,4 @@ fi
 
 # Monitorar logs em background (opcional)
 echo -e "\n${BLUE}📊 Para acompanhar os logs em tempo real, execute:${NC}"
-echo -e "   ${YELLOW}docker compose logs -f${NC}"
+echo -e "   ${YELLOW}docker-compose logs -f${NC}"

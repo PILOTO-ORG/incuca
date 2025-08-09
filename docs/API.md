@@ -4,7 +4,7 @@
 
 Esta documentação descreve todos os endpoints disponíveis na API do projeto Incuca Geek Jokes.
 
-**Base URL:** `http://localhost:3001/api`
+**Base URL:** `http://localhost:8000/api`
 
 ## 🔐 Autenticação
 
@@ -228,7 +228,7 @@ JWT_REFRESH_EXPIRES_IN="7d"
 JOKES_API_URL="https://v2.jokeapi.dev"
 
 # Servidor
-PORT=3001
+PORT=8000
 NODE_ENV="development"
 
 # Cache

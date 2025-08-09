@@ -7,6 +7,7 @@ import Toast from 'vue-toastification'
 
 import App from './App.vue'
 import router from './router'
+import LoggerPlugin from './plugins/logger'
 
 // Estilos
 import 'vuetify/styles'
@@ -87,6 +88,7 @@ app.use(createPinia())
 app.use(router)
 app.use(vuetify)
 app.use(Toast, toastOptions)
+app.use(LoggerPlugin)
 
 // Configuração global
 app.config.globalProperties.$appName = 'Incuca Geek Jokes'

@@ -358,14 +358,18 @@ const triggerCelebration = () => {
   }, 3000)
 }
 
-const restartJourney = () => {
+const restartJourney = async () => {
   toast.info('Reiniciando jornada... 🔄')
   
   // Reset stats
   moodStore.resetMood()
   
   // Voltar ao inicial
-  router.push('/inicial')
+  try {
+    await router.push('/inicial')
+  } catch (error) {
+    console.error('Erro na navegação:', error)
+  }
 }
 
 const shareExperience = async () => {

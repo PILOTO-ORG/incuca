@@ -2,13 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useMoodStore } from '../stores/mood'
 
-// Lazy loading das páginas
-const LoginView = () => import('../views/LoginView.vue')
-const InicialView = () => import('../views/InicialView.vue')
-const TristeView = () => import('../views/TristeView.vue')
-const PokerFaceView = () => import('../views/PokerFaceView.vue')
-const FelizView = () => import('../views/FelizView.vue')
-const NotFoundView = () => import('../views/NotFoundView.vue')
+// Importação estática para debug
+import LoginView from '../views/LoginView.vue'
+import InicialView from '../views/InicialView.vue'
+import TristeView from '../views/TristeView.vue'
+import PokerFaceView from '../views/PokerFaceView.vue'
+import FelizView from '../views/FelizView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 
 const routes = [
   {

@@ -2,21 +2,27 @@
   "name": "incuca-backend",
   "version": "1.0.0",
   "description": "Backend API para o teste Incuca - SPA das Piadas Geek",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "build": "npm run db:generate",
-    "test": "jest",
+    "start": "node dist/server.js",
+    "start:dev": "node src/server.js",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "dev:js": "nodemon src/server.js",
+    "build": "tsc && tsc-alias && npm run db:generate",
+    "build:watch": "tsc --watch",
+    "test": "jest --config jest.config.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix",
+    "lint": "eslint src/**/*.{js,ts}",
+    "lint:fix": "eslint src/**/*.{js,ts} --fix",
+    "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
-    "db:seed": "node src/database/seed.js",
-    "db:studio": "prisma studio"
+    "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
+    "db:seed:js": "node src/database/seed.js",
+    "db:studio": "prisma studio",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "nodejs",
@@ -29,42 +35,45 @@
   "author": "Incuca Test",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
-    "compression": "^1.7.4",
-    "express-rate-limit": "^7.1.5",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
-    "joi": "^17.11.0",
-    "axios": "^1.6.2",
-    "node-cache": "^5.1.2",
     "@prisma/client": "^5.7.1",
-    "dotenv": "^16.3.1"
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-cache": "^5.1.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2",
-    "jest": "^29.7.0",
-    "supertest": "^6.3.3",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/helmet": "^4.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.2.1",
     "eslint": "^8.55.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-n": "^16.4.0",
     "eslint-plugin-promise": "^6.1.1",
-    "prisma": "^5.7.1"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.10",
+    "prisma": "^5.7.1",
+    "supertest": "^6.3.3",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "coverageDirectory": "coverage",
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/server.js",
-      "!src/database/seed.js"
-    ]
-  }
+  "jest": "jest --config jest.config.js"
 }

@@ -291,7 +291,7 @@ const formattedJoke = computed(() => {
   
   // Destacar emojis e formatação básica
   return currentJoke.value
-    .replace(/([😀-🙏])/g, '<span class="emoji-highlight">$1</span>')
+    .replace(/([\u{1F600}-\u{1F64F}])/gu, '<span class="emoji-highlight">$1</span>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
 })
@@ -369,9 +369,17 @@ const closeJoke = () => {
   
   showJoke.value = false
   
-  // Transição para feliz
+  // Transição para feliz com navegação mais robusta
   setTimeout(() => {
-    router.push('/feliz')
+    router.replace('/feliz').catch(error => {
+      console.error('Erro na navegação:', error)
+      // Fallback: tentar novamente com push
+      router.push('/feliz').catch(err => {
+        console.error('Erro no fallback:', err)
+        // Último recurso: recarregar a página
+        window.location.href = '/feliz'
+      })
+    })
   }, 500)
 }
 

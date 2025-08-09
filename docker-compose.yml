@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Frontend Vue.js
   frontend:
@@ -30,7 +28,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=mysql://root:secret@database:3306/incuca
+      - DATABASE_URL=postgresql://incuca:secret@database:5432/incuca
       - JWT_SECRET=your-super-secret-jwt-key-here-should-be-very-long-and-random
       - JWT_EXPIRES_IN=7d
       - GEEK_JOKES_API_URL=https://geek-jokes.sameerkumar.website/api
@@ -40,37 +38,23 @@ services:
     networks:
       - incuca-network
 
-  # MySQL Database
+  # PostgreSQL Database
   database:
-    image: mysql:8.0
+    image: postgres:15
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      - MYSQL_ROOT_PASSWORD=secret
-      - MYSQL_DATABASE=incuca
-      - MYSQL_USER=incuca
-      - MYSQL_PASSWORD=secret
+      - POSTGRES_DB=incuca
+      - POSTGRES_USER=incuca
+      - POSTGRES_PASSWORD=secret
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - incuca-network
 
-  # PHPMyAdmin (opcional para desenvolvimento)
-  phpmyadmin:
-    image: phpmyadmin:latest
-    ports:
-      - "8080:80"
-    environment:
-      - PMA_HOST=database
-      - PMA_USER=root
-      - PMA_PASSWORD=secret
-    depends_on:
-      - database
-    networks:
-      - incuca-network
 
 volumes:
-  mysql_data:
+  postgres_data:
 
 networks:
   incuca-network:

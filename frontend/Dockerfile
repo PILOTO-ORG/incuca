@@ -7,21 +7,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências
-RUN npm ci
+RUN npm install
 
 # Copiar código fonte
 COPY . .
 
-# Criar usuário não-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Mudar ownership dos arquivos
-RUN chown -R nextjs:nodejs /app
-USER nextjs
+# Configurar permissões para desenvolvimento
+RUN chmod -R 777 /app
 
 # Expor porta
 EXPOSE 3000
 
 # Comando para iniciar a aplicação em modo desenvolvimento
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

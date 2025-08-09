@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Coverage output
+coverage/
+
+# Logs
+logs/
+
+# Temp files
+tmp/

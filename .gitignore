@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Environment variables
+*.env
+
+# Logs
+tmp/
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Docker override
+docker-compose.override.yml
+
+# Vite
+dist/
+
+# VSCode
+.vscode/

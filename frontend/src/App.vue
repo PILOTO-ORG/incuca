@@ -14,8 +14,32 @@
 
       <v-spacer></v-spacer>
 
-      <!-- User info e logout quando logado -->
+      <!-- Menu de navegação quando logado -->
       <template v-if="userStore.isAuthenticated">
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              icon="mdi-menu"
+              v-bind="props"
+              class="me-2"
+            />
+          </template>
+          <v-list>
+            <v-list-item
+              v-for="item in navigationItems"
+              :key="item.name"
+              :to="item.path"
+              :disabled="item.disabled"
+            >
+              <template v-slot:prepend>
+                <v-icon>{{ item.icon }}</v-icon>
+              </template>
+              <v-list-item-title>{{ item.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <!-- User info e logout quando logado -->
         <v-chip
           color="accent"
           variant="outlined"
@@ -149,6 +173,37 @@ const currentMoodText = computed(() => {
   }
   return moodTexts[moodStore.currentMood] || 'Indefinido'
 })
+
+const navigationItems = computed(() => [
+  {
+    title: 'Inicial',
+    name: 'inicial',
+    path: '/inicial',
+    icon: 'mdi-emoticon-neutral',
+    disabled: false
+  },
+  {
+    title: 'Triste',
+    name: 'triste',
+    path: '/triste',
+    icon: 'mdi-emoticon-sad',
+    disabled: false
+  },
+  {
+    title: 'Poker Face',
+    name: 'poker-face',
+    path: '/poker-face',
+    icon: 'mdi-emoticon-cool',
+    disabled: false
+  },
+  {
+    title: 'Feliz',
+    name: 'feliz',
+    path: '/feliz',
+    icon: 'mdi-emoticon-happy',
+    disabled: false
+  }
+])
 
 // Métodos
 const handleLogout = async () => {

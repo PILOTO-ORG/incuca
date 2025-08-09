@@ -238,8 +238,13 @@ const seekJoke = () => {
     }
   }, 100)
 
-  setTimeout(() => {
-    router.push('/poker-face')
+  setTimeout(async () => {
+    try {
+      await router.push('/poker-face')
+    } catch (error) {
+      console.error('Erro na navegação:', error)
+      isTransitioning.value = false
+    }
   }, 1500)
 }
 

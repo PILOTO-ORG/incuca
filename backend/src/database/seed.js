@@ -21,14 +21,16 @@ async function seed() {
       return
     }
 
-    // Hash da senha conforme especificado
-    const password = 'seumamesapossuirtrespernaschamadasqualidadeprecobaixoevelocidadeelaseriacapenga'
-    const hashedPassword = await bcrypt.hash(password, 12)
+  // Hash da senha conforme especificado no .env
+  const initPassword = process.env.INITIAL_USER_PASSWORD
+  const password = initPassword || ''
+  const hashedPassword = await bcrypt.hash(password, 12)
 
     // Criar usuário inicial
+    const initEmail = process.env.INITIAL_USER_EMAIL
     const user = await prisma.user.create({
       data: {
-        email: 'cliente@incuca.com.br',
+        email: initEmail || '',
         name: 'Cliente Incuca',
         password: hashedPassword,
         active: true
@@ -44,7 +46,6 @@ async function seed() {
     const sampleJokes = [
       "Por que os programadores preferem dark mode? Porque light atrai bugs! 🐛",
       "Como você chama um algoritmo que não funciona? Um bug-ritmo! 🎵",
-      "Por que o HTML foi ao psicólogo? Porque tinha problemas com suas tags! 🏷️"
     ]
 
     for (const joke of sampleJokes) {

@@ -109,7 +109,7 @@
               color="info"
               variant="outlined"
               size="large"
-              class="mb-4"
+              class="me-4 mb-4"
               @click="showInfo = !showInfo"
             >
               <v-icon start>mdi-help-circle</v-icon>
@@ -217,8 +217,12 @@ const handleScreenClick = () => {
   }, 600)
 }
 
-const goToSad = () => {
-  router.push('/triste')
+const goToSad = async () => {
+  try {
+    await router.push('/triste')
+  } catch (error) {
+    console.error('Erro na navegação:', error)
+  }
 }
 
 // Lifecycle
