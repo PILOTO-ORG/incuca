@@ -82,16 +82,16 @@ incuca/
 | Fase | Componente | Estimativa | Real | Observações |
 |------|------------|------------|------|-------------|
 | **1** | Setup inicial | 2h | 1h | Docker e estrutura |
-| **1** | Backend API | 8h | 6h | Express + Prisma + JWT |
-| **1** | Frontend SPA | 10h | 8h | Vue + Vuetify + Pinia |
+| **1** | Backend API | 8h | 3h | Express + Prisma + JWT |
+| **1** | Frontend SPA | 10h | 3h | Vue + Vuetify + Pinia |
 | **1** | Integração | 3h | 4h | Auth + API de piadas |
-| **1** | Docker | 2h | 3h | Configuração completa |
+| **1** | Docker | 2h | 1h | Configuração completa |
 | **1** | Testes básicos | 3h | 2h | Jest setup |
-| **2** | Melhorias UX | 3h | 4h | Animações e transições |
-| **2** | Testes E2E | 4h | 5h | Cobertura completa |
-| **2** | Documentação | 2h | 2h | README e comentários |
+| **2** | Melhorias UX | 3h | 2h | Animações e transições |
+| **2** | Testes E2E | 4h | 3h | Cobertura completa |
+| **2** | Documentação | 2h | 1h | README e comentários |
 
-**Total Estimado: 37h | Total Real: 35h** ✅
+**Total Estimado: 37h | Total Real: 20h** ✅
 
 ## 🚀 Como Executar
 
@@ -182,19 +182,6 @@ docker-compose up --build
 - Melhor DX (Developer Experience)
 - Introspection automática do schema
 
-## 🧪 Testes
-
-### Estrutura de Testes
-```
-backend/tests/
-├── unit/           # Testes unitários (controllers, services)
-└── integration/    # Testes de integração (rotas completas)
-
-frontend/tests/
-├── unit/           # Componentes isolados
-└── e2e/            # Fluxo completo da aplicação
-```
-
 ### Executar Testes
 ```bash
 # Backend
@@ -207,12 +194,6 @@ docker-compose exec frontend npm test
 ./run-tests.sh
 ```
 
-### Funcionalidade Especial: Teste End-to-End Integrado
-- **Botão "Testar Todas as Rotas"** no frontend
-- Executa automaticamente todo o fluxo da aplicação
-- Testa: Login → Inicial → Triste → Poker-Face → Feliz → Inicial
-- Apresenta resultado em tempo real
-- Valida integração completa frontend ↔ backend ↔ API externa
 
 ## 🔒 Segurança Implementada
 
@@ -223,15 +204,6 @@ docker-compose exec frontend npm test
 - **Rate limiting** na API
 - **Senhas hasheadas** com bcrypt
 - **Variáveis de ambiente** para credenciais
-
-## 📈 Performance
-
-- **Lazy loading** de componentes Vue
-- **Code splitting** automático do Vite
-- **Cache** de piadas no localStorage
-- **Debounce** em validações
-- **Otimização** de bundle
-- **Compressão** gzip habilitada
 
 ## 🚦 Status do Projeto
 
@@ -271,7 +243,7 @@ docker-compose exec frontend npm test
 ✅ **Todos os requisitos obrigatórios atendidos**  
 ✅ **Diferenciais implementados (Docker + Testes)**  
 ✅ **Funciona com um único comando: `docker-compose up`**  
-✅ **Estimativa de tempo cumprida (35h real vs 37h estimado)**  
+✅ **Estimativa de tempo cumprida (20h real vs 37h estimado)**  
 ✅ **Código limpo e bem documentado**  
 ✅ **UX/UI criativa e responsiva**  
 
