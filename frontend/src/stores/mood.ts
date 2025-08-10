@@ -1,17 +1,48 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+
+// Tipos
+interface MoodConfig {
+  name: string
+  description: string
+  emoji: string
+  color: string
+  bgClass: string
+  icon: string
+}
+
+interface MoodHistoryEntry {
+  from: string
+  to: string
+  timestamp: string
+}
+
+interface MoodStats {
+  currentMood: string
+  totalTransitions: number
+  moodCounts: Record<string, number>
+  lastTransition: MoodHistoryEntry | null
+  progression: {
+    current: number
+    total: number
+    percentage: number
+    isComplete: boolean
+  }
+}
+
+type MoodType = 'inicial' | 'triste' | 'poker-face' | 'feliz'
 
 /**
  * Store para gerenciar o humor/mood da aplicação
  */
 export const useMoodStore = defineStore('mood', () => {
   // Estados
-  const currentMood = ref('inicial')
-  const moodHistory = ref([])
-  const isTransitioning = ref(false)
+  const currentMood = ref<MoodType>('inicial')
+  const moodHistory = ref<MoodHistoryEntry[]>([])
+  const isTransitioning = ref<boolean>(false)
 
   // Configuração dos moods
-  const moodConfig = {
+  const moodConfig: Record<MoodType, MoodConfig> = {
     inicial: {
       name: 'Inicial',
       description: 'Estado neutro, sem emoção definida',
@@ -52,7 +83,7 @@ export const useMoodStore = defineStore('mood', () => {
   })
 
   const moodProgression = computed(() => {
-    const moods = ['inicial', 'triste', 'poker-face', 'feliz']
+    const moods: MoodType[] = ['inicial', 'triste', 'poker-face', 'feliz']
     const currentIndex = moods.indexOf(currentMood.value)
     const total = moods.length
     
@@ -65,20 +96,20 @@ export const useMoodStore = defineStore('mood', () => {
   })
 
   const canProgress = computed(() => {
-    const progressionOrder = ['inicial', 'triste', 'poker-face', 'feliz']
+    const progressionOrder: MoodType[] = ['inicial', 'triste', 'poker-face', 'feliz']
     const currentIndex = progressionOrder.indexOf(currentMood.value)
     return currentIndex < progressionOrder.length - 1
   })
 
   const canRegress = computed(() => {
-    const progressionOrder = ['inicial', 'triste', 'poker-face', 'feliz']
+    const progressionOrder: MoodType[] = ['inicial', 'triste', 'poker-face', 'feliz']
     const currentIndex = progressionOrder.indexOf(currentMood.value)
     return currentIndex > 0
   })
 
   // Actions
-  const setMood = (newMood) => {
-    if (!moodConfig[newMood]) {
+  const setMood = (newMood: string): boolean => {
+    if (!moodConfig[newMood as MoodType]) {
       console.warn(`Mood '${newMood}' não existe`)
       return false
     }
@@ -99,12 +130,12 @@ export const useMoodStore = defineStore('mood', () => {
       moodHistory.value = moodHistory.value.slice(-50)
     }
 
-    currentMood.value = newMood
+    currentMood.value = newMood as MoodType
     return true
   }
 
-  const progressMood = () => {
-    const progressionOrder = ['inicial', 'triste', 'poker-face', 'feliz']
+  const progressMood = (): boolean => {
+    const progressionOrder: MoodType[] = ['inicial', 'triste', 'poker-face', 'feliz']
     const currentIndex = progressionOrder.indexOf(currentMood.value)
     
     if (currentIndex < progressionOrder.length - 1) {
@@ -115,8 +146,8 @@ export const useMoodStore = defineStore('mood', () => {
     return false
   }
 
-  const regressMood = () => {
-    const progressionOrder = ['inicial', 'triste', 'poker-face', 'feliz']
+  const regressMood = (): boolean => {
+    const progressionOrder: MoodType[] = ['inicial', 'triste', 'poker-face', 'feliz']
     const currentIndex = progressionOrder.indexOf(currentMood.value)
     
     if (currentIndex > 0) {
@@ -139,8 +170,8 @@ export const useMoodStore = defineStore('mood', () => {
     isTransitioning.value = false
   }
 
-  const getMoodStats = () => {
-    const stats = {}
+  const getMoodStats = (): MoodStats => {
+    const stats: Record<string, number> = {}
     
     // Contar ocorrências de cada mood no histórico
     moodHistory.value.forEach(entry => {
@@ -161,16 +192,16 @@ export const useMoodStore = defineStore('mood', () => {
   }
 
   // Métodos utilitários
-  const getMoodByName = (name) => {
+  const getMoodByName = (name: string): string | undefined => {
     return Object.keys(moodConfig).find(key => 
-      moodConfig[key].name.toLowerCase() === name.toLowerCase()
+      moodConfig[key as MoodType].name.toLowerCase() === name.toLowerCase()
     )
   }
 
   const getAllMoods = () => {
     return Object.keys(moodConfig).map(key => ({
       key,
-      ...moodConfig[key]
+      ...moodConfig[key as MoodType]
     }))
   }
 
@@ -189,8 +220,8 @@ export const useMoodStore = defineStore('mood', () => {
       const savedMood = localStorage.getItem('incuca_current_mood')
       const savedHistory = localStorage.getItem('incuca_mood_history')
       
-      if (savedMood && moodConfig[savedMood]) {
-        currentMood.value = savedMood
+      if (savedMood && moodConfig[savedMood as MoodType]) {
+        currentMood.value = savedMood as MoodType
       }
       
       if (savedHistory) {

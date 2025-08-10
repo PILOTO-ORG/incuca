@@ -6,8 +6,8 @@ import {
   LoginResponse, 
   JwtPayload, 
   User 
-} from '@/types';
-import { jwtConfig } from '@/config';
+} from '../types';
+import { jwtConfig } from '../config';
 
 export class AuthService implements IAuthService {
   constructor(private prisma: PrismaClient) {}

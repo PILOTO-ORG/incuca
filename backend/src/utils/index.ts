@@ -9,7 +9,7 @@
  */
 
 import crypto from 'crypto';
-import { ApiResponse } from '@/types';
+import { ApiResponse } from '../types';
 
 /**
  * Response Utilities

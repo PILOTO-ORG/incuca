@@ -5,11 +5,11 @@ import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import authRoutes from '@/routes/auth';
-import jokeRoutes from '@/routes/jokes';
-import logsRoutes from '@/routes/logs';
-import { errorHandler } from '@/middleware/errorHandler';
-import { notFound } from '@/middleware/notFound';
+import authRoutes from './routes/auth';
+import jokeRoutes from './routes/jokes';
+import logsRoutes from './routes/logs';
+import { errorHandler } from './middleware/errorHandler';
+import { notFound } from './middleware/notFound';
 
 // Load environment variables
 dotenv.config();

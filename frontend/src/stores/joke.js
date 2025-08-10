@@ -137,7 +137,6 @@ export const useJokeStore = defineStore('joke', () => {
     const fallbackJokes = [
       "Por que os programadores preferem dark mode? Porque light atrai bugs! 🐛",
       "Como você chama um algoritmo que não funciona? Um bug-ritmo! 🎵",
-      "Por que o HTML foi ao psicólogo? Porque tinha problemas com suas tags! 🏷️",
       "O que o CSS disse para o HTML? Sem mim você não tem estilo! 💄",
       "Por que o JavaScript foi rejeitado? Porque era muito == e pouco ===! ⚖️",
       "Como um programador conserta um bug? Ele debug-a! 🔍",

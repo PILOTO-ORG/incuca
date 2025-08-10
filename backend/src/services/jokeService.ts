@@ -1,15 +1,16 @@
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
-import { externalApiConfig } from '@/config';
+import { externalApiConfig } from '../config';
 
 export interface Joke {
   id?: number;
   joke: string;
-  translatedJoke?: string;
+  createdAt?: Date;
+  isFavorited?: boolean;
 }
 
 export class JokeService {
-  private static readonly WHATSAPP_PHONE = '5548998589586'; // Formato internacional
+  private static readonly WHATSAPP_PHONE = '554898589586'; // Formato internacional
 
   constructor(private prisma: PrismaClient) {}
 
@@ -182,9 +183,29 @@ export class JokeService {
     try {
       console.log(`⭐ Favoritando piada para usuário ${userId}`);
       
-      // TODO: Implementar após migração completa do schema
-      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
-      throw new Error('Funcionalidade temporariamente indisponível');
+      // Verificar se já existe nos favoritos
+      const existing = await this.prisma.favoriteJoke.findUnique({
+        where: {
+          userId_joke: {
+            userId,
+            joke
+          }
+        }
+      });
+
+      if (existing) {
+        console.log('📝 Piada já está nos favoritos');
+        return;
+      }
+
+      // Criar novo favorito
+      await this.prisma.favoriteJoke.create({
+        data: {
+          userId,
+          joke,
+          jokeId
+        }
+      });
       
       console.log('✅ Piada favoritada com sucesso');
     } catch (error: any) {
@@ -200,9 +221,18 @@ export class JokeService {
     try {
       console.log(`❌ Desfavoritando piada para usuário ${userId}`);
       
-      // TODO: Implementar após migração completa do schema
-      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
-      throw new Error('Funcionalidade temporariamente indisponível');
+      // Buscar e deletar o favorito
+      const deleted = await this.prisma.favoriteJoke.deleteMany({
+        where: {
+          userId,
+          joke
+        }
+      });
+
+      if (deleted.count === 0) {
+        console.log('📝 Piada não estava nos favoritos');
+        return;
+      }
       
       console.log('✅ Piada removida dos favoritos');
     } catch (error) {
@@ -218,11 +248,19 @@ export class JokeService {
     try {
       console.log(`📋 Buscando favoritos do usuário ${userId}`);
       
-      // TODO: Implementar após migração completa do schema
-      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
-      
-      // Retornar lista vazia temporariamente
-      const jokes: Joke[] = [];
+      // Buscar favoritos do usuário no banco
+      const favorites = await this.prisma.favoriteJoke.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // Converter para formato Joke
+      const jokes: Joke[] = favorites.map(fav => ({
+        id: fav.id,
+        joke: fav.joke,
+        createdAt: fav.createdAt,
+        isFavorited: true
+      }));
       
       console.log(`✅ Encontrados ${jokes.length} favoritos`);
       return jokes;
@@ -237,9 +275,20 @@ export class JokeService {
    */
   async isJokeFavorited(userId: number, joke: string): Promise<boolean> {
     try {
-      // TODO: Implementar após migração completa do schema
-      console.log('📝 Funcionalidade em desenvolvimento - schema em migração');
-      return false;
+      console.log(`🔍 Verificando se piada está favoritada para usuário ${userId}`);
+      
+      const favorite = await this.prisma.favoriteJoke.findUnique({
+        where: {
+          userId_joke: {
+            userId,
+            joke
+          }
+        }
+      });
+
+      const isFavorited = !!favorite;
+      console.log(`✅ Piada ${isFavorited ? 'está' : 'não está'} nos favoritos`);
+      return isFavorited;
     } catch (error) {
       console.error('🚨 Erro ao verificar favorito:', error);
       return false;

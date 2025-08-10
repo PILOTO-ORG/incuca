@@ -384,24 +384,43 @@ const closeJoke = () => {
 }
 
 const shareJoke = async () => {
+  if (!currentJoke.value) return
+  
   try {
     isSharing.value = true
     const success = await jokeStore.shareJoke(currentJoke.value)
     if (success) {
-      toast.success('Piada compartilhada/copiada!')
+      toast.success('WhatsApp aberto para compartilhar! 📱')
     } else {
       toast.error('Erro ao compartilhar piada')
     }
   } catch (error) {
+    console.error('Erro ao compartilhar:', error)
     toast.error('Erro ao compartilhar piada')
   } finally {
     isSharing.value = false
   }
 }
 
-const toggleFavorite = () => {
-  isFavorited.value = !isFavorited.value
-  toast.success(isFavorited.value ? 'Adicionada aos favoritos!' : 'Removida dos favoritos!')
+const toggleFavorite = async () => {
+  if (!currentJoke.value) return
+  
+  try {
+    const success = await jokeStore.toggleFavorite(currentJoke.value)
+    
+    if (success) {
+      // Atualizar estado local baseado no resultado
+      const isNowFavorited = jokeStore.favorites.some(fav => fav.joke === currentJoke.value)
+      isFavorited.value = isNowFavorited
+      
+      toast.success(isNowFavorited ? 'Adicionada aos favoritos! ❤️' : 'Removida dos favoritos! 💔')
+    } else {
+      toast.error('Erro ao alterar favorito')
+    }
+  } catch (error) {
+    console.error('Erro ao alterar favorito:', error)
+    toast.error('Erro ao alterar favorito')
+  }
 }
 
 const getParticleStyle = (index) => {
@@ -417,6 +436,9 @@ onMounted(() => {
   // Garantir mood correto
   moodStore.setMood('poker-face')
   
+  // Carregar favoritos
+  jokeStore.fetchFavorites()
+  
   // Iniciar carregamento
   setTimeout(() => {
     loadJoke()
@@ -430,6 +452,13 @@ watch(happinessLevel, (newLevel) => {
     toast.success('Você está 100% feliz! 🎉')
   }
 })
+
+// Sincronizar estado de favorito quando a piada ou favoritos mudarem
+watch([currentJoke, () => jokeStore.favorites], () => {
+  if (currentJoke.value) {
+    isFavorited.value = jokeStore.favorites.some(fav => fav.joke === currentJoke.value)
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

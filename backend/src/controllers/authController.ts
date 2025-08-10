@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { AuthService } from '@/services/authService';
-import { AuthenticatedRequest, LoginRequest } from '@/types';
-import { responseUtils } from '@/utils';
+import { AuthService } from '../services/authService';
+import { AuthenticatedRequest, LoginRequest } from '../types';
+import { responseUtils } from '../utils';
 import { loginSchema } from '../validators/authValidator';
 
 const prisma = new PrismaClient();

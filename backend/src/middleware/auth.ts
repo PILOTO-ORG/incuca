@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { AuthService } from '@/services/authService';
-import { AuthenticatedRequest, JwtPayload } from '@/types';
-import { responseUtils } from '@/utils';
+import { AuthService } from '../services/authService';
+import { AuthenticatedRequest, JwtPayload } from '../types';
+import { responseUtils } from '../utils';
 
 const prisma = new PrismaClient();
 const authService = new AuthService(prisma);

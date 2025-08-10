@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { config } from '@/config';
-import { responseUtils } from '@/utils';
-import { ErrorResponse, HttpStatusCode } from '@/types';
+import { config } from '../config';
+import { responseUtils } from '../utils';
+import { ErrorResponse, HttpStatusCode } from '../types';
 
 /**
  * Interface para erros personalizados

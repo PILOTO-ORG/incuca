@@ -60,7 +60,7 @@
 
           <!-- Estatísticas do usuário -->
           <v-card 
-            class="mx-auto stats-card elevated-card"
+            class="mx-auto stats-card elevated-card mb-6"
             max-width="400"
             variant="outlined"
           >
@@ -76,8 +76,8 @@
                   <div class="stat-label">Transições</div>
                 </v-col>
                 <v-col cols="6" class="text-center">
-                  <div class="stat-number">{{ Math.round(moodStats.progression.percentage) }}%</div>
-                  <div class="stat-label">Progresso</div>
+                  <div class="stat-number">{{ favoritesCount }}</div>
+                  <div class="stat-label">Favoritos</div>
                 </v-col>
               </v-row>
 
@@ -89,6 +89,105 @@
                 rounded
                 class="mt-4"
               />
+            </v-card-text>
+          </v-card>
+
+          <!-- Lista de Piadas Favoritas -->
+          <v-card
+            v-if="favorites.length > 0"
+            class="mx-auto favorites-card elevated-card mb-6"
+            max-width="800"
+            variant="outlined"
+          >
+            <v-card-title class="d-flex align-center">
+              <v-icon class="me-2" color="warning">mdi-heart</v-icon>
+              Suas Piadas Favoritas
+              <v-spacer />
+              <v-chip color="warning" variant="outlined" size="small">
+                {{ favorites.length }}
+              </v-chip>
+            </v-card-title>
+
+            <v-card-text>
+              <div class="favorites-container">
+                <v-card
+                  v-for="(favorite, index) in displayFavorites"
+                  :key="favorite.id"
+                  class="favorite-joke-card mb-3"
+                  variant="tonal"
+                  :color="index % 2 === 0 ? 'primary' : 'secondary'"
+                >
+                  <v-card-text class="pa-4">
+                    <div class="d-flex align-start">
+                      <div class="flex-grow-1">
+                        <p class="joke-text mb-3">{{ favorite.joke }}</p>
+                        <div class="d-flex align-center justify-space-between">
+                          <small class="text-caption text-medium-emphasis">
+                            <v-icon size="16" class="me-1">mdi-clock</v-icon>
+                            {{ formatDate(favorite.createdAt) }}
+                          </small>
+                          <div>
+                            <v-btn
+                              icon
+                              size="small"
+                              variant="text"
+                              @click="shareJoke(favorite.joke)"
+                              :loading="isSharing"
+                            >
+                              <v-icon>mdi-share</v-icon>
+                            </v-btn>
+                            <v-btn
+                              icon
+                              size="small"
+                              variant="text"
+                              color="error"
+                              @click="removeFavorite(favorite.joke)"
+                              :loading="isFavoriteLoading"
+                            >
+                              <v-icon>mdi-heart-off</v-icon>
+                            </v-btn>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </v-card-text>
+                </v-card>
+
+                <!-- Botão para ver mais -->
+                <div v-if="favorites.length > 3" class="text-center mt-4">
+                  <v-btn
+                    variant="outlined"
+                    @click="showAllFavorites = !showAllFavorites"
+                  >
+                    <v-icon :class="{ 'rotate-180': showAllFavorites }">
+                      mdi-chevron-down
+                    </v-icon>
+                    {{ showAllFavorites ? 'Ver menos' : `Ver todas (${favorites.length})` }}
+                  </v-btn>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- Card quando não há favoritos -->
+          <v-card
+            v-else-if="!isFavoriteLoading"
+            class="mx-auto favorites-card elevated-card mb-6"
+            max-width="600"
+            variant="outlined"
+          >
+            <v-card-text class="text-center pa-8">
+              <v-icon size="64" color="grey-lighten-1" class="mb-4">
+                mdi-heart-outline
+              </v-icon>
+              <h3 class="text-h6 mb-2">Nenhuma piada favorita ainda</h3>
+              <p class="text-body-2 text-medium-emphasis mb-4">
+                Comece explorando os diferentes humores e favoritando as piadas que mais gosta!
+              </p>
+              <v-btn color="primary" variant="elevated" @click="goToSad">
+                <v-icon start>mdi-emoticon-sad</v-icon>
+                Explorar Piadas
+              </v-btn>
             </v-card-text>
           </v-card>
 
@@ -171,17 +270,21 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMoodStore } from '../stores/mood'
 import { useUserStore } from '../stores/user'
+import { useJokeStore } from '../stores/joke'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const moodStore = useMoodStore()
 const userStore = useUserStore()
+const jokeStore = useJokeStore()
 const toast = useToast()
 
 // Estados reativos
 const showInfo = ref(false)
 const isShaking = ref(false)
 const clickCount = ref(0)
+const showAllFavorites = ref(false)
+const isSharing = ref(false)
 const encouragementMessages = ref([
   "Que tal uma mudança? 🤔",
   "Clique para descobrir o que acontece! ✨",
@@ -192,6 +295,16 @@ const encouragementMessages = ref([
 
 // Computed
 const moodStats = computed(() => moodStore.getMoodStats())
+const favorites = computed(() => jokeStore.favorites)
+const favoritesCount = computed(() => jokeStore.favoritesCount)
+const isFavoriteLoading = computed(() => jokeStore.isFavoriteLoading)
+
+const displayFavorites = computed(() => {
+  if (showAllFavorites.value) {
+    return favorites.value
+  }
+  return favorites.value.slice(0, 3)
+})
 
 // Methods
 const handleScreenClick = () => {
@@ -225,10 +338,69 @@ const goToSad = async () => {
   }
 }
 
+const shareJoke = async (joke) => {
+  try {
+    isSharing.value = true
+    const success = await jokeStore.shareJoke(joke)
+    
+    if (success) {
+      toast.success('WhatsApp aberto para compartilhar! 📱')
+    } else {
+      toast.error('Erro ao compartilhar piada')
+    }
+  } catch (error) {
+    console.error('Erro ao compartilhar:', error)
+    toast.error('Erro ao compartilhar piada')
+  } finally {
+    isSharing.value = false
+  }
+}
+
+const removeFavorite = async (joke) => {
+  try {
+    const success = await jokeStore.removeFromFavorites(joke)
+    
+    if (success) {
+      toast.success('Piada removida dos favoritos! 💔')
+    } else {
+      toast.error('Erro ao remover dos favoritos')
+    }
+  } catch (error) {
+    console.error('Erro ao remover favorito:', error)
+    toast.error('Erro ao remover dos favoritos')
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 1) {
+      return 'Hoje'
+    } else if (diffDays === 2) {
+      return 'Ontem'
+    } else if (diffDays <= 7) {
+      return `${diffDays} dias atrás`
+    } else {
+      return date.toLocaleDateString('pt-BR')
+    }
+  } catch (error) {
+    return 'Data inválida'
+  }
+}
+
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   // Garantir que estamos no mood correto
   moodStore.setMood('inicial')
+  
+  // Carregar favoritos
+  await jokeStore.fetchFavorites()
   
   // Easter egg: mensagem de boas-vindas
   setTimeout(() => {
@@ -367,5 +539,52 @@ onUnmounted(() => {
 .v-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos para favoritos */
+.favorites-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.favorite-joke-card {
+  transition: all 0.3s ease;
+  border-radius: 12px !important;
+}
+
+.favorite-joke-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.joke-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.favorites-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Animação para loading de favoritos */
+.favorite-joke-card {
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

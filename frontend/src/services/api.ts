@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 
 // Configuração base do axios
 const api = axios.create({
@@ -10,12 +10,24 @@ const api = axios.create({
   }
 })
 
+// Tipos para as respostas da API
+export interface ApiResponse<T = any> {
+  success: boolean
+  message: string
+  data: T
+}
+
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+}
+
 // Interceptor para requisições
 api.interceptors.request.use(
-  (config) => {
+  (config: AxiosRequestConfig) => {
     // Adicionar token se existir
     const token = localStorage.getItem('accessToken')
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
     
@@ -37,7 +49,7 @@ api.interceptors.request.use(
 
 // Interceptor para respostas
 api.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     // Log da resposta em desenvolvimento
     if (import.meta.env.DEV) {
       console.log(`🟢 ${response.config.method?.toUpperCase()} ${response.config.url}`, {
@@ -48,7 +60,7 @@ api.interceptors.response.use(
     
     return response
   },
-  async (error) => {
+  async (error: any) => {
     const originalRequest = error.config
     
     // Log do erro
@@ -66,7 +78,7 @@ api.interceptors.response.use(
       
       if (refreshToken && !originalRequest.url.includes('/auth/refresh')) {
         try {
-          const response = await api.post('/auth/refresh', {
+          const response = await api.post<ApiResponse<AuthTokens>>('/auth/refresh', {
             refreshToken
           })
           
@@ -129,7 +141,7 @@ export const apiHelpers = {
   /**
    * Fazer upload de arquivo
    */
-  uploadFile: async (file, onProgress) => {
+  uploadFile: async (file: File, onProgress?: (progress: number) => void) => {
     const formData = new FormData()
     formData.append('file', file)
     
@@ -138,7 +150,7 @@ export const apiHelpers = {
         'Content-Type': 'multipart/form-data'
       },
       onUploadProgress: (progressEvent) => {
-        if (onProgress) {
+        if (onProgress && progressEvent.total) {
           const progress = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           )
@@ -151,7 +163,7 @@ export const apiHelpers = {
   /**
    * Download de arquivo
    */
-  downloadFile: async (url, filename) => {
+  downloadFile: async (url: string, filename: string) => {
     const response = await api.get(url, {
       responseType: 'blob'
     })
@@ -170,9 +182,9 @@ export const apiHelpers = {
   /**
    * Verificar se API está online
    */
-  checkHealth: async () => {
+  checkHealth: async (): Promise<boolean> => {
     try {
-      const response = await api.get('/health')
+      const response = await api.get<ApiResponse>('/health')
       return response.data.success
     } catch (error) {
       return false

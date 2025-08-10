@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpStatusCode } from '@/types';
+import { HttpStatusCode } from '../types';
 
 interface NotFoundResponse {
   success: false;

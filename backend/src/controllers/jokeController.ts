@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { JokeService } from '@/services/jokeService';
-import { responseUtils, validationUtils } from '@/utils';
+import { JokeService } from '../services/jokeService';
+import { responseUtils, validationUtils } from '../utils';
 
 const prisma = new PrismaClient();
 const jokeService = new JokeService(prisma);
@@ -260,29 +260,7 @@ export const shareJoke = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-/**
- * Buscar piadas por categoria (funcionalidade futura)
- */
-export const getJokesByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  console.log('📂 JokeController.getJokesByCategory - Category jokes request started');
-  
-  try {
-    const category = req.params.category;
-    console.log(`🏷️ JokeController.getJokesByCategory - Requested category: ${category}`);
 
-    // Implementação futura - por enquanto retorna piada aleatória
-    const joke = await jokeService.getRandomJoke();
-
-    res.json(responseUtils.success(`Piada da categoria "${category}"`, {
-      joke,
-      category,
-      note: 'Categorização em desenvolvimento - retornando piada aleatória'
-    }));
-  } catch (error: any) {
-    console.error('🚨 JokeController.getJokesByCategory - Error:', error.message);
-    next(error);
-  }
-};
 
 /**
  * Health check para verificar se o serviço de piadas está funcionando

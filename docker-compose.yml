@@ -23,16 +23,15 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - DATABASE_URL=postgresql://incuca:secret@database:5432/incuca
       - JWT_SECRET=your-super-secret-jwt-key-here-should-be-very-long-and-random
       - JWT_EXPIRES_IN=7d
       - GEEK_JOKES_API_URL=https://geek-jokes.sameerkumar.website/api
       - CORS_ORIGIN=http://localhost:3000
+      - INITIAL_USER_EMAIL=cliente@incuca.com.br
+      - INITIAL_USER_PASSWORD=seumamesapossuirtrespernaschamadasqualidadeprecobaixoevelocidadeelaseriacapenga
     depends_on:
       - database
     networks:

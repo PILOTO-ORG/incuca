@@ -3,18 +3,46 @@ import { ref, computed } from 'vue'
 import api from '../services/api'
 import { logger } from '../plugins/logger'
 
+// Tipos
+interface User {
+  id: number
+  name: string
+  email: string
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface Tokens {
+  accessToken: string | null
+  refreshToken: string | null
+}
+
+interface LoginCredentials {
+  email: string
+  password: string
+}
+
+interface LoginResponse {
+  success: boolean
+  message: string
+  user: User
+  access_token: string
+  refresh_token: string
+}
+
 /**
  * Store para gerenciar estado do usuário e autenticação
  */
 export const useUserStore = defineStore('user', () => {
   // Estados
-  const user = ref(null)
-  const tokens = ref({
+  const user = ref<User | null>(null)
+  const tokens = ref<Tokens>({
     accessToken: null,
     refreshToken: null
   })
-  const isLoading = ref(false)
-  const isInitialized = ref(false)
+  const isLoading = ref<boolean>(false)
+  const isInitialized = ref<boolean>(false)
 
   // Getters
   const isAuthenticated = computed(() => {
@@ -32,14 +60,14 @@ export const useUserStore = defineStore('user', () => {
   })
 
   // Actions
-  const login = async (credentials) => {
+  const login = async (credentials: LoginCredentials) => {
     logger.info('🔐 Iniciando processo de login', { email: credentials.email })
     
     try {
       isLoading.value = true
       logger.debug('Login loading state set to true')
       
-      const response = await api.post('/auth/login', credentials)
+      const response = await api.post<LoginResponse>('/auth/login', credentials)
       logger.debug('Login API response received', { status: response.status })
       
       if (response.data.success) {
@@ -66,7 +94,7 @@ export const useUserStore = defineStore('user', () => {
       }
       
       throw new Error(response.data.message || 'Erro no login')
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Erro no login', { 
         message: error.message,
         status: error.response?.status,
@@ -90,7 +118,7 @@ export const useUserStore = defineStore('user', () => {
         try {
           await api.post('/auth/logout')
           logger.success('Logout realizado no servidor')
-        } catch (error) {
+        } catch (error: any) {
           logger.warn('⚠️ Erro ao fazer logout no servidor (continuando)', { error: error.message })
         }
       }
@@ -99,7 +127,7 @@ export const useUserStore = defineStore('user', () => {
       clearUserData()
       logger.success('✅ Logout concluído com sucesso')
       
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Erro no logout', { error: error.message })
       // Mesmo com erro, limpar dados locais
       clearUserData()
@@ -108,7 +136,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const refreshToken = async () => {
+  const refreshToken = async (): Promise<boolean> => {
     logger.info('🔄 Tentando renovar token')
     
     try {
@@ -134,14 +162,14 @@ export const useUserStore = defineStore('user', () => {
       }
       
       throw new Error('Falha ao renovar token')
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Erro ao renovar token', { error: error.message })
       clearUserData()
       return false
     }
   }
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (): Promise<boolean> => {
     logger.debug('📤 Buscando dados do usuário')
     
     try {
@@ -159,7 +187,7 @@ export const useUserStore = defineStore('user', () => {
       }
       
       return false
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Erro ao buscar dados do usuário', { 
         error: error.message,
         status: error.response?.status 
@@ -176,7 +204,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<boolean> => {
     logger.info('🔍 Verificando estado de autenticação')
     
     try {
@@ -184,9 +212,9 @@ export const useUserStore = defineStore('user', () => {
       
       // Buscar tokens do localStorage
       const accessToken = localStorage.getItem('accessToken')
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshTokenValue = localStorage.getItem('refreshToken')
       
-      if (!accessToken || !refreshToken) {
+      if (!accessToken || !refreshTokenValue) {
         logger.info('Tokens não encontrados no localStorage')
         isInitialized.value = true
         return false
@@ -195,7 +223,7 @@ export const useUserStore = defineStore('user', () => {
       logger.debug('Tokens encontrados no localStorage')
       
       // Configurar tokens
-      tokens.value = { accessToken, refreshToken }
+      tokens.value = { accessToken, refreshToken: refreshTokenValue }
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
       
       // Tentar buscar dados do usuário
@@ -209,7 +237,7 @@ export const useUserStore = defineStore('user', () => {
       
       logger.success('✅ Sessão restaurada com sucesso')
       return true
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Erro ao verificar autenticação', { error: error.message })
       clearUserData()
       return false
@@ -237,7 +265,9 @@ export const useUserStore = defineStore('user', () => {
     logger.debug('Dados do usuário limpos', { previousUserId })
   }
 
-  const updateUser = (userData) => {
+  const updateUser = (userData: Partial<User>) => {
+    if (!user.value) return
+    
     const previousData = { ...user.value }
     user.value = { ...user.value, ...userData }
     

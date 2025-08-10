@@ -8,8 +8,8 @@ import {
   unfavoriteJoke,
   checkJokeFavorite,
   shareJoke
-} from '@/controllers/jokeController';
-import { authenticateToken } from '@/middleware/auth';
+} from '../controllers/jokeController';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
